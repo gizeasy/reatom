@@ -206,21 +206,25 @@ export function createContext(): Ctx {
 
       const queue: Array<AtomCache> = updates
       trz.updates = []
-      const stack = queue.map((cache) => {
-        patches.set(cache.__origin, cache)
-        return cache.__children
-      })
-      fillStack()
-      function fillStack() {
-        for (const children of stack) {
+      const touched: Array<Set<Atom>> = []
+      for (const patch of queue) {
+        patches.set(patch.__origin, patch)
+        touched.push(patch.__children)
+      }
+      fillQueue()
+      function fillQueue() {
+        for (const children of touched) {
           for (const child of children) {
             if (patches.has(child)) continue
-            let cache = caches.get(child)!
-            cache = { ...cache, __prev: cache }
-            stack.push(cache.__children)
-            if (cache.__listeners.size > 0) queue.push(cache)
+
+            const cache = caches.get(child)!
+            const patch = Object.assign({}, cache)
+            patch.__prev = cache
+
+            touched.push(patch.__children)
+            if (patch.__listeners.size > 0) queue.push(patch)
             // mark atom as dirty
-            patches.set(child, cache)
+            patches.set(child, patch)
           }
         }
       }
@@ -517,7 +521,7 @@ function displayNameWithoutName() {
   )
 }
 
-// displayNameWithName()
+displayNameWithName()
 function displayNameWithName() {
   const ctx = createContext()
 

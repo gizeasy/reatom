@@ -11,7 +11,8 @@ import {
   Fn,
   getState,
   Rec,
-  } from '@reatom/core'
+  Store,
+} from '@reatom/core'
 // } from '.'
 import { createNumberAtom, createPrimitiveAtom } from '@reatom/core/primitives'
 import { createPersist, createResource, init } from '@reatom/core/experiments'

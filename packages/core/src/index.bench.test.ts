@@ -15,8 +15,8 @@ import {
 
 import { createAtom, defaultStore, Fn, Rec } from '@reatom/core'
 import { createPrimitiveAtom } from '@reatom/core/primitives'
-import { combine, map /* , reatomV3 */ } from '@reatom/core/experiments'
-import * as reatomV3 from '../experiments/atom'
+import { combine, map, v3 } from '@reatom/core/experiments'
+// import * as v3 from '../experiments/atom'
 
 configure({ enforceActions: 'never' })
 
@@ -71,28 +71,20 @@ async function start(iterations: number) {
   })
   resOpt = 0
 
-  const aV3 = reatomV3.atom(reatomV3.primitive(0))
+  const aV3 = v3.atom(0)
 
-  const bV3 = reatomV3.atom(reatomV3.map(aV3, (v) => v + 1))
-  const cV3 = reatomV3.atom(reatomV3.map(aV3, (v) => v + 1))
-  const dV3 = reatomV3.atom(
-    reatomV3.computed((trz) => trz.spy(bV3) + trz.spy(cV3)),
-  )
-  const eV3 = reatomV3.atom(reatomV3.map(dV3, (v) => v + 1))
-  const fV3 = reatomV3.atom(
-    reatomV3.computed((trz) => trz.spy(dV3) + trz.spy(eV3)),
-  )
-  const gV3 = reatomV3.atom(
-    reatomV3.computed((trz) => trz.spy(dV3) + trz.spy(eV3)),
-  )
-  const hV3 = reatomV3.atom(
-    reatomV3.computed((trz) => trz.spy(fV3) + trz.spy(gV3)),
-  )
+  const bV3 = v3.atom(({ spy }) => spy(aV3) + 1)
+  const cV3 = v3.atom(({ spy }) => spy(aV3) + 1)
+  const dV3 = v3.atom(({ spy }) => spy(bV3) + spy(cV3))
+  const eV3 = v3.atom(({ spy }) => spy(dV3) + 1)
+  const fV3 = v3.atom(({ spy }) => spy(dV3) + spy(eV3))
+  const gV3 = v3.atom(({ spy }) => spy(dV3) + spy(eV3))
+  const hV3 = v3.atom(({ spy }) => spy(fV3) + spy(gV3))
 
-  const ctxV3 = reatomV3.createContext()
+  const ctxV3 = v3.createContext()
   let resV3 = 0
-  reatomV3.subscribe(ctxV3, hV3, (v) => {
-    resV3 += v
+  ctxV3.subscribe(hV3, (v) => {
+    resV3 += v //?
   })
   resV3 = 0
 
@@ -236,7 +228,7 @@ async function start(iterations: number) {
     reatomOptLogs.push(performance.now() - startReatomOpt)
 
     const startReatomV3 = performance.now()
-    ctxV3.run((trz) => aV3.update(trz, i))
+    aV3.change(ctxV3, i)
     reatomV3Logs.push(performance.now() - startReatomV3)
 
     const startEffector = performance.now()
@@ -273,7 +265,7 @@ async function start(iterations: number) {
   printLogs({
     reatom: log(reatomLogs),
     reatomOpt: log(reatomOptLogs),
-    reatomV3: log(reatomV3Logs),
+    v3: log(reatomV3Logs),
     effector: log(effectorLogs),
     mol: log(molLogs),
     cellx: log(cellxLogs),
@@ -282,6 +274,7 @@ async function start(iterations: number) {
   })
 }
 
+start(10)
 start(100)
 start(1_000)
 start(10_000)
